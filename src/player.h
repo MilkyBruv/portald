@@ -66,6 +66,8 @@ void destroy_player();
 
 void init_portal_gun();
 void update_portal_gun();
+void shoot_bullet();
+void check_bullet_collisions();
 void draw_portal_gun();
 void destroy_portal_gun();
 
