@@ -6,14 +6,16 @@
 #include "types.h"
 #include "input.h"
 
-#define FB_WIDTH 256
-#define FB_HEIGHT 240
+#define FB_SCALE 4
+#define FB_WIDTH (256 * FB_SCALE)
+#define FB_HEIGHT (240 * FB_SCALE)
+#define TILESIZE 16
 
 #define min(x, y) ((x) < (y) ? (x) : (y))
 
 typedef struct framebuffer
 {
-    u16 width, height, x, y, mouse_x, mouse_y;
+    u16 width, height, x, y;
     f32 scale;
     ALLEGRO_BITMAP* bitmap;
 } framebuffer_t;

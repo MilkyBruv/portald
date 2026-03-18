@@ -2,6 +2,8 @@
 
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
+#include <allegro5/allegro_audio.h>
+#include <allegro5/allegro_acodec.h>
 #include "types.h"
 #include "player.h"
 #include "input.h"
@@ -12,6 +14,8 @@ int main(int argc, const char* argv[])
 
     al_init();
     al_init_image_addon();
+    al_init_acodec_addon();
+    al_install_audio();
     al_install_keyboard();
     al_install_mouse();
 
@@ -28,6 +32,7 @@ int main(int argc, const char* argv[])
     al_register_event_source(event_queue, al_get_mouse_event_source());
 
     init_gfx();
+    init_sfx();
     init_player();
     init_portal_gun();
 
@@ -71,7 +76,7 @@ int main(int argc, const char* argv[])
             al_clear_to_color(al_map_rgb(0, 0, 0));
             al_set_target_bitmap(fb.bitmap);
 
-            al_clear_to_color(al_map_rgb(0, 0, 255));
+            al_clear_to_color(al_map_rgb(192, 192, 192));
             draw_player();
             draw_portal_gun();
 
@@ -91,6 +96,7 @@ int main(int argc, const char* argv[])
     destroy_portal_gun();
 
     destroy_gfx();
+    destroy_sfx();
 
     al_unregister_event_source(event_queue, al_get_display_event_source(display));
     al_unregister_event_source(event_queue, al_get_timer_event_source(timer));
@@ -98,6 +104,7 @@ int main(int argc, const char* argv[])
     al_unregister_event_source(event_queue, al_get_mouse_event_source());
 
     al_shutdown_image_addon();
+    al_uninstall_audio();
     al_uninstall_keyboard();
     al_uninstall_mouse();
     
