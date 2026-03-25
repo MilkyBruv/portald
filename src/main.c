@@ -4,9 +4,11 @@
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro_audio.h>
 #include <allegro5/allegro_acodec.h>
+#include <allegro5/allegro_primitives.h>
 #include "types.h"
 #include "player.h"
 #include "input.h"
+#include "level.h"
 
 int main(int argc, const char* argv[])
 {
@@ -15,6 +17,7 @@ int main(int argc, const char* argv[])
     al_init();
     al_init_image_addon();
     al_init_acodec_addon();
+    al_init_primitives_addon();
     al_install_audio();
     al_install_keyboard();
     al_install_mouse();
@@ -35,6 +38,7 @@ int main(int argc, const char* argv[])
     init_sfx();
     init_player();
     init_portal_gun();
+    init_level(&level);
 
     b1 running = true;
     b1 redraw = false;
@@ -79,6 +83,7 @@ int main(int argc, const char* argv[])
             al_clear_to_color(al_map_rgb(192, 192, 192));
             draw_player();
             draw_portal_gun();
+            draw_level(level);
 
             al_set_target_bitmap(al_get_backbuffer(display));
             scale_framebuffer(display);
@@ -95,6 +100,8 @@ int main(int argc, const char* argv[])
     destroy_player();
     destroy_portal_gun();
 
+    destroy_level(&level);
+
     destroy_gfx();
     destroy_sfx();
 
@@ -104,6 +111,7 @@ int main(int argc, const char* argv[])
     al_unregister_event_source(event_queue, al_get_mouse_event_source());
 
     al_shutdown_image_addon();
+    al_shutdown_primitives_addon();
     al_uninstall_audio();
     al_uninstall_keyboard();
     al_uninstall_mouse();

@@ -6,9 +6,8 @@
 #include "types.h"
 #include "input.h"
 
-#define FB_SCALE 4
-#define FB_WIDTH (256 * FB_SCALE)
-#define FB_HEIGHT (240 * FB_SCALE)
+#define FB_WIDTH 256
+#define FB_HEIGHT 240
 #define TILESIZE 16
 
 #define min(x, y) ((x) < (y) ? (x) : (y))

@@ -13,7 +13,7 @@ void init_player()
     player = malloc(sizeof(player_t));
     player->x = 0;
     player->y = 0;
-    player->speed = 3 * FB_SCALE;
+    player->speed = 3;
     player->split = false;
     player->split_x = 0;
     player->split_y = 0;
@@ -44,7 +44,7 @@ void update_player()
 void draw_player()
 {
     // Draw player (using rotated draw cuz scaling is easier)
-    al_draw_scaled_rotated_bitmap(player->bitmap, 4, 8, player->x, player->y, FB_SCALE, FB_SCALE, 0.0f, 0);
+    al_draw_rotated_bitmap(player->bitmap, 4, 8, player->x, player->y, 0.0f, 0);
 }
 
 void destroy_player()
@@ -90,8 +90,8 @@ void init_portal_gun()
 void update_portal_gun()
 {
     // Set angle to point at mouse
-    f32 dist_x = inputs.fb_mouse_x - (portal_gun->x + 12);
-    f32 dist_y = inputs.fb_mouse_y - (portal_gun->y + 8);
+    f32 dist_x = inputs.fb_mouse_x - portal_gun->x;
+    f32 dist_y = inputs.fb_mouse_y - portal_gun->y;
     portal_gun->angle = atan2f(dist_y, dist_x) - atan2f(0.0f, 1.0f);
 
     if (inputs.mouse_state.buttons & 1 && !portal_gun->hasShot)
@@ -124,12 +124,7 @@ void update_portal_gun()
         portal_gun->hasShot = false;
     }
 
-    // Move bullets
-    for (u8 i = 0; i < MAX_BULLETS; i++)
-    {
-        portal_gun->bullets[i]->x += portal_gun->bullets[i]->dx * BULLET_SPEED;
-        portal_gun->bullets[i]->y += portal_gun->bullets[i]->dy * BULLET_SPEED;
-    }
+    check_bullet_collisions();
 
     portal_gun->x = player->x;
     portal_gun->y = player->y;
@@ -139,7 +134,7 @@ void shoot_bullet()
 {
     // Get first available bullet and cycle index
     portal_gun_bullet_t* bullet = portal_gun->bullets[portal_gun->current_bullet_index];
-    portal_gun->current_bullet_index = portal_gun->current_bullet_index == 3 ? 0 : portal_gun->current_bullet_index + 1;
+    portal_gun->current_bullet_index = portal_gun->current_bullet_index == MAX_BULLETS - 1 ? 0 : portal_gun->current_bullet_index + 1;
 
     // Set properties
     bullet->color = portal_gun->color;
@@ -149,8 +144,9 @@ void shoot_bullet()
     bullet->dy = sin(portal_gun->angle);
     
     // Set position to end of portal gun
-    bullet->x = portal_gun->x + (cos(bullet->angle) * (7 * FB_SCALE));
-    bullet->y = portal_gun->y + (sin(bullet->angle) * (7 * FB_SCALE));
+    bullet->x = portal_gun->x + (cos(bullet->angle) * 7);
+    bullet->y = portal_gun->y + (sin(bullet->angle) * 7);
+    set_bullet_ray(bullet);
 }
 
 void check_bullet_collisions()
@@ -159,23 +155,65 @@ void check_bullet_collisions()
     {
         portal_gun_bullet_t* bullet = portal_gun->bullets[i];
 
-        // Stop bullet if off screen
+        f32 next_x = bullet->x + bullet->dx * BULLET_SPEED;
+        f32 next_y = bullet->y + bullet->dy * BULLET_SPEED;
+        bullet->x = next_x;
+        bullet->y = next_y;
+
+        if (bullet->x <= -8 || bullet->y >= fb.width + 8 || 
+            bullet->y <= -8 || bullet->y >= fb.width + 8)
+        {
+            bullet->dx = 0;
+            bullet->dy = 0;
+            bullet->bitmap = NULL;
+        }
+
+        for (size_t j = 0; j < MAX_TILES; j++)
+        {
+            tile_t* tile = level.tiles[i];
+
+            if (tile == NULL) { continue; }
+
+            for (u8 s = 0; s < tile->sides; s++)
+            {
+                // Next position index
+                u8 next = s == tile->sides - 1 ? 0 : s + 1;
+
+                if (get_line_collision(tile->x_positions[s], tile->y_positions[s],
+                    tile->x_positions[next], tile->y_positions[next],
+                    bullet->ray_start_x, bullet->ray_start_y,
+                    bullet->ray_end_x, bullet->ray_end_y))
+                {
+                    bullet->angle *= -1;
+                }
+            }
+        }
     }
-    
+}
+
+void set_bullet_ray(portal_gun_bullet_t* bullet)
+{
+    bullet->ray_start_x = bullet->x - (cos(bullet->angle) * 4);
+    bullet->ray_start_y = bullet->y - (sin(bullet->angle) * 4);
+
+    bullet->ray_end_x = bullet->x + (cos(bullet->angle) * 4);
+    bullet->ray_end_y = bullet->y + (sin(bullet->angle) * 4);
 }
 
 void draw_portal_gun()
 {
     // Draw portal gun and flip if facing left
     int flipFlags = inputs.fb_mouse_x < portal_gun->x ? ALLEGRO_FLIP_VERTICAL : 0;
-    al_draw_scaled_rotated_bitmap(portal_gun->bitmap, 12, 8, portal_gun->x, portal_gun->y, FB_SCALE, FB_SCALE, 
+    al_draw_rotated_bitmap(portal_gun->bitmap, 12, 8, portal_gun->x, portal_gun->y, 
         portal_gun->angle, flipFlags);
 
     // Draw bullets
     for (u8 i = 0; i < MAX_BULLETS; i++)
     {
         portal_gun_bullet_t* bullet = portal_gun->bullets[i];
-        al_draw_scaled_rotated_bitmap(bullet->bitmap, 4, 4, bullet->x, bullet->y, FB_SCALE, FB_SCALE, bullet->angle, 0);
+        if (bullet->bitmap == NULL) { continue; }
+        al_draw_rotated_bitmap(bullet->bitmap, 4, 4, bullet->x, bullet->y, bullet->angle, 0);
+        al_draw_line(bullet->ray_start_x, bullet->ray_start_y, bullet->ray_end_x, bullet->ray_end_y, al_map_rgb(0, 255, 0), 1.0f);
     }
 }
 

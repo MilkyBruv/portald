@@ -3,12 +3,14 @@
 
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_audio.h>
+#include <allegro5/allegro_primitives.h>
 #include <stdio.h>
 #include <math.h>
 #include "types.h"
 #include "gfx.h"
 #include "input.h"
 #include "sfx.h"
+#include "level.h"
 
 #define PLAYER_SPEED 1
 #define PLAYER_WIDTH 8
@@ -28,6 +30,7 @@ typedef struct portal
 typedef struct portal_gun_bullet
 {
     f32 x, y;
+    f32 ray_start_x, ray_start_y, ray_end_x, ray_end_y;
     f32 dx, dy, angle;
     portal_color_t color;
     ALLEGRO_BITMAP* bitmap;
@@ -68,6 +71,7 @@ void init_portal_gun();
 void update_portal_gun();
 void shoot_bullet();
 void check_bullet_collisions();
+void set_bullet_ray(portal_gun_bullet_t* bullet);
 void draw_portal_gun();
 void destroy_portal_gun();
 
