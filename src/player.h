@@ -16,15 +16,13 @@
 #define PLAYER_WIDTH 8
 #define PLAYER_HEIGHT 16
 #define MAX_BULLETS 4
-#define BULLET_SPEED 16
+#define BULLET_SPEED 4
 
 typedef enum portal_color { BLUE, ORANGE } portal_color_t;
-typedef enum portal_direction { UP, DOWN, LEFT, RIGHT } portal_direction_t;
 typedef struct portal
 {
     s16 x, y;
     portal_color_t color;
-    portal_direction_t direction;
     ALLEGRO_BITMAP* bitmap;
 } portal_t;
 typedef struct portal_gun_bullet

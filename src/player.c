@@ -146,7 +146,6 @@ void shoot_bullet()
     // Set position to end of portal gun
     bullet->x = portal_gun->x + (cos(bullet->angle) * 7);
     bullet->y = portal_gun->y + (sin(bullet->angle) * 7);
-    set_bullet_ray(bullet);
 }
 
 void check_bullet_collisions()
@@ -155,22 +154,30 @@ void check_bullet_collisions()
     {
         portal_gun_bullet_t* bullet = portal_gun->bullets[i];
 
-        f32 next_x = bullet->x + bullet->dx * BULLET_SPEED;
-        f32 next_y = bullet->y + bullet->dy * BULLET_SPEED;
-        bullet->x = next_x;
-        bullet->y = next_y;
-
         if (bullet->x <= -8 || bullet->y >= fb.width + 8 || 
             bullet->y <= -8 || bullet->y >= fb.width + 8)
         {
             bullet->dx = 0;
             bullet->dy = 0;
             bullet->bitmap = NULL;
+            continue;
         }
+
+        // Get next pos, set ray to next pos, reset pos
+        f32 old_x = bullet->x;
+        f32 old_y = bullet->y;
+        f32 next_x = bullet->x += bullet->dx * BULLET_SPEED;
+        f32 next_y = bullet->y += bullet->dy * BULLET_SPEED;
+        bullet->x = next_x;
+        bullet->y = next_y;
+        set_bullet_ray(bullet);
+        bullet->x = old_x;
+        bullet->y = old_y;
 
         for (size_t j = 0; j < MAX_TILES; j++)
         {
             tile_t* tile = level.tiles[i];
+            b1 hits = false;
 
             if (tile == NULL) { continue; }
 
@@ -184,7 +191,7 @@ void check_bullet_collisions()
                     bullet->ray_start_x, bullet->ray_start_y,
                     bullet->ray_end_x, bullet->ray_end_y))
                 {
-                    bullet->angle *= -1;
+                    hits = true;
                 }
             }
         }
